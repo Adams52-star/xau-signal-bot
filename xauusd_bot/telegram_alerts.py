@@ -1,6 +1,5 @@
 """
-Sends formatted signal alerts to Telegram via the Bot API (plain HTTP,
-no heavy dependency needed).
+Sends formatted signal alerts to Telegram via the Bot API.
 """
 
 import logging
@@ -38,7 +37,17 @@ def format_signal(signal: dict, fundamentals: dict) -> str:
         f"{emoji} <b>{direction} SIGNAL — XAUUSD</b>",
         f"Price: <b>{signal['price']:.2f}</b>",
         "",
-        f"<b>Technical:</b> {signal['reason']}",
+        "<b>Confluences:</b>",
+    ]
+    for c in signal["confluences"]:
+        lines.append(f"  • {c}")
+
+    lines += [
+        "",
+        f"Entry: <b>{signal['entry']:.2f}</b>",
+        f"Stop loss: <b>{signal['stop_loss']:.2f}</b>",
+        f"Take profit: <b>{signal['take_profit']:.2f}</b>",
+        f"Risk:Reward — <b>1:{signal['risk_reward']:.2f}</b>",
         "",
         f"<b>DXY bias:</b> {fundamentals['dxy_bias']}",
         f"<b>Gold headline bias:</b> {fundamentals['headline_bias']}",

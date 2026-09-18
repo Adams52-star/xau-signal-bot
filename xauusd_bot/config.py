@@ -32,13 +32,18 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_FILE = "state.json"
 COOLDOWN_MINUTES = 30       # don't re-alert the same setup within this window
 
-# ── TECHNICAL STRATEGY PARAMETERS ──────────────────────────────────────
-SWING_LOOKBACK = 5
-EMA_TREND_PERIOD = 50
-RSI_PERIOD = 14
-RSI_OVERBOUGHT = 70
-RSI_OVERSOLD = 30
-MIN_SWEEP_PIPS = 1.5
+# ── SMC STRATEGY PARAMETERS ─────────────────────────────────────────────
+SWING_LOOKBACK = 5                    # candles each side to confirm a swing point
+MIN_SWEEP_PIPS = 1.5                  # min $ a wick must clear a level by to count as a sweep
+STRUCTURE_LOOKBACK_WINDOW = 20        # how many recent candles to scan for a CHoCH
+MAX_RETRACEMENT_WAIT_CANDLES = 15     # how long after CHoCH we still consider the OB "live"
+OB_LOOKBACK = 10                      # how far back to search for the order block candle
+EQUAL_LEVEL_TOLERANCE = 1.0           # $ tolerance for clustering swing points as "equal highs/lows"
+ROUND_LEVEL_STEP = 5                  # round-number spacing for gold (e.g. every $5)
+ROUND_LEVEL_TOLERANCE = 2.0           # how close price must be to a round level to count as confluence
+QML_PROXIMITY = 3.0                   # how close price must be to a QML neckline to flag it
+MIN_RISK_REWARD = 1.5                 # minimum R:R required to actually send a signal
+SL_BUFFER = 1.0                       # extra $ beyond the swept extreme for the stop loss
 
 # ── FUNDAMENTAL FILTER PARAMETERS ──────────────────────────────────────
 NEWS_BLACKOUT_MINUTES_BEFORE = 30

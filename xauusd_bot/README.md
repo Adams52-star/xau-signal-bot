@@ -78,12 +78,45 @@ immediately instead of waiting:
 
 ## About the current strategy
 
-`strategy.py` is a **starter setup**: EMA trend filter + liquidity sweep
-of a recent swing high/low + RSI filter. Simple and readable on purpose,
-so you can replace `check_technical_conditions()` with your own
-SMC/liquidity-mapping rules later without touching anything else.
+`strategy.py` now runs a full SMC confluence engine (`market_structure.py`,
+`poi.py`, `levels.py`, `patterns.py`), following this exact pipeline:
 
-`fundamentals.py` checks:
+1. **Structure**: finds swing highs/lows, classifies trend (HH+HL vs
+   LH+LL), and looks for a recent CHoCH (Change of Character) — the
+   trend reversing.
+2. **Liquidity sweep**: requires a sweep-and-reclaim of the opposing
+   swing point right before that CHoCH.
+3. **Order block**: finds the last opposite-colored candle before the
+   CHoCH's impulsive move — this is the entry zone.
+4. **Entry trigger**: only fires once price has actually retraced back
+   into that order block, and only if the block hasn't been invalidated.
+5. **Bonus confluence** (strengthens the read, never gates the signal
+   alone): FVG overlap with the order block, proximity to the previous
+   day's high/low, a round-number key level, a matching QML pattern
+   shape, or a CRT-style sweep of the previous day's range.
+6. **R:R gate**: computes entry/stop/target and only sends the alert if
+   risk:reward clears `MIN_RISK_REWARD` (1.5 by default) — a fully
+   confirmed setup with poor R:R is skipped, not sent.
+
+This scans REVERSAL setups only (CHoCH-based) — trend-continuation (BOS)
+trades are deliberately out of scope for this engine.
+
+Honest limitations, stated plainly:
+- Single timeframe only — this bot has one data feed, so it runs the
+  "LTF" half of a proper top-down HTF→LTF process. A stricter version
+  would confirm higher-timeframe bias on a separate feed first.
+- QML and CRT detection are simplified, rule-based approximations of
+  concepts that are partly subjective even for experienced traders —
+  they're treated as bonus confluence, never a standalone trigger.
+- Breaker blocks are tracked as an invalidation check (an order block
+  that gets closed through is treated as broken, not silently reused),
+  but the engine doesn't yet trade breaker blocks as their own setup.
+
+Because this requires several conditions to align at once (sweep + CHoCH
++ untouched order block + acceptable R:R, all within a recent window),
+it will fire far less often than the old starter logic — that's
+intentional, not a bug. Check the Actions run logs any time to see the
+`reason` field explaining exactly which step a given cycle failed at.
 1. Upcoming high-impact USD news (NFP, FOMC, CPI, etc.) via a free
    economic calendar feed — flags nearby signals rather than blocking
    them outright.
